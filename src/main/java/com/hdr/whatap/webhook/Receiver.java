@@ -86,15 +86,22 @@ public class Receiver extends HttpServlet {
 
 		// @뒤로 네임스페이스가 붙어나오는 메시지 재가공
 		String message = dto.getMessage();
-		int idx = message.indexOf("@");
+		int idx = message.indexOf(config.getString("webhook.message.seperator", "@"));
 
 		if (idx > 0) {
 			String messageFix = message.substring(0, idx);
 			String namespace = message.substring(idx + 1);
+			
+			if (messageFix.contains("Scaled") == true) {
+				dto.setMessage(messageFix.replace("replica set ", ""));
+			} else {
+				dto.setMessage(messageFix);
+			}
+			
 			dto.setOname(namespace);
-			dto.setMessage(messageFix);
+			dto.setTitle(dto.getProjectName());
 		}
-
+		
 		FilePrinter printer = new FilePrinter();
 		printer.print(dto, path);
 	}
