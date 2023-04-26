@@ -1,4 +1,3 @@
-
 package com.hdr.whatap.webhook;
 
 import java.util.Arrays;
@@ -17,18 +16,14 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootApplication
 @EnableScheduling
 public class HdrWebhookApplication {
-
 	
 	@Autowired
     AutowireCapableBeanFactory beanFactory; 
 	
 	@Bean
 	public ServletRegistrationBean<Receiver> ReceiverServletRegistrationBean() {
-		
-				
 		Config config = Config.getConfig();
 		log.info("Config file \n" + config.toString());
-		
 		
 		ServletRegistrationBean srb = new ServletRegistrationBean();
 		final Receiver servlet = new Receiver();

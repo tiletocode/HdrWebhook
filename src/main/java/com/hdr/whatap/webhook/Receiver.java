@@ -89,19 +89,75 @@ public class Receiver extends HttpServlet {
 		int idx = message.indexOf(config.getString("webhook.message.seperator", "@"));
 
 		if (idx > 0) {
-			String messageFix = message.substring(0, idx);
+			String msgWithoutNamespace = message.substring(0, idx);
 			String namespace = message.substring(idx + 1);
-			
-			if (messageFix.contains("Scaled") == true) {
-				dto.setMessage(messageFix.replace("replica set ", ""));
-			} else {
-				dto.setMessage(messageFix);
-			}
-			
+
 			dto.setOname(namespace);
-			dto.setTitle(dto.getProjectName());
+
+			String prjName = dto.getProjectName();
+			switch (prjName) {
+			case "DVE_Kube":
+			dto.setTitle("개발오픈시프트");
+			break;
+			case "DRE_Kube":
+			dto.setTitle("DR오픈시프트");
+			break;
+			case "PRE_Kube":
+			dto.setTitle("운영오픈시프트");
+			break;
+			}
+
+			// // HPA메시지 판별
+			// if (msgWithoutNamespace.contains("Scaled replication")) {
+
+			// // 쌍따옴표 안의 podName 추출
+			// String podPatternString = "\"([^\"]*)\"";
+			// Pattern podPattern = Pattern.compile(podPatternString);
+			// Matcher podMatcher = podPattern.matcher(msgWithoutNamespace);
+			// String podName = "";
+			// if (podMatcher.find()) {
+			// podName = podMatcher.group(1);
+			// }
+
+			// // pod증감메시지 가공
+			// Pattern countPattern = Pattern.compile("from (\\d+) to (\\d+)");
+			// Matcher countMatcher = countPattern.matcher(msgWithoutNamespace);
+			// int from = 0;
+			// int to = 0;
+			// if (countMatcher.find()) {
+			// from = Integer.parseInt(countMatcher.group(1));
+			// to = Integer.parseInt(countMatcher.group(2));
+			// }
+			// String countMsg = msgWithoutNamespace.replaceFirst(".* from (\\d+) to
+			// (\\d+)", "$1개에서 $2개로 ");
+
+			// String compString = "";
+			// if (from > to) { // 감소한 경우
+			// compString = "감소하였습니다.";
+			// } else { // 증가한 경우
+			// compString = "증가하였습니다.";
+			// }
+
+			// String finalMsg = prjName + " 프로젝트의 " + podName + " pod가 " + countMsg +
+			// compString;
+			// dto.setMessage(finalMsg);
+			// } else {
+			// dto.setMessage(msgWithoutNamespace);
+			// }
+			
+			if (msgWithoutNamespace.contains("Scaled replication")) {
+				String podName = msgWithoutNamespace.replaceAll("^.*\"([^\"]+)\".*$", "$1");
+				String countMsg = msgWithoutNamespace.replaceAll("^.*from (\\d+) to (\\d+).*$", "$1개에서 $2개로");
+				int from = Integer.parseInt(msgWithoutNamespace.replaceAll("^.*from (\\d+) to (\\d+).*$", "$1"));
+				int to = Integer.parseInt(msgWithoutNamespace.replaceAll("^.*from (\\d+) to (\\d+).*$", "$2"));
+				String compString = (from > to) ? "감소하였습니다." : "증가하였습니다.";
+				String finalMsg = String.format("%s 프로젝트의 %s pod가 %s %s", prjName, podName, countMsg, compString);
+				dto.setMessage(finalMsg);
+			} else {
+				dto.setMessage(msgWithoutNamespace);
+			}
 		}
-		
+
 		FilePrinter printer = new FilePrinter();
 		printer.print(dto, path);
 	}

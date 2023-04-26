@@ -3,6 +3,7 @@ package com.hdr.whatap.webhook;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 public class FilePrinter {
@@ -29,7 +30,8 @@ public class FilePrinter {
 		outFormat = StringUtils.replace(outFormat, "#time", StringUtils.formatDate(dto.getTime(),
 		Config.getConfig().getString("webhook.message.date.format", "yyyy-MM-dd HH:mm:ss")));
 
-		PrintWriter printWriter = new PrintWriter(new FileOutputStream(new File(path), true));
+		//PrintWriter printWriter = new PrintWriter(new FileOutputStream(new File(path), true));
+		PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(path), true), "UTF-8"));
 		printWriter.println(outFormat);
 		printWriter.close();
 		
